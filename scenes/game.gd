@@ -1,6 +1,6 @@
 extends Node2D
 
-@export var pits : Array[int] = [
+@export var init_pits : Array[int] = [
 	4,4,4, 4,4,4, 0, # Player 1, bottom row
 	4,4,4, 4,4,4, 0, # Player 2, top row
 ]
@@ -22,15 +22,15 @@ func _ready():
 
 func _init_pits():
 	for i in 14:
-		for j in pits[i]:
+		var button : Button = %Pits.get_child(i)
+		button.child_order_changed.connect(func(): _on_pit_changed(i))
+		for j in init_pits[i]:
 			var rock = %RockTemplate.duplicate()
-			rock.visible = true
-			var rect : Button = get_node("%Pit" + str(i))
+			rock.visible = true	
 			rock.position = rand_offset()
-			rect.add_child(rock)
+			button.add_child(rock)
 
 func _on_pit_pressed(pit_num : int):
-	$Label.text = "Pressed Pit: " + str(pit_num)
 	var pit = pit_from_num(pit_num)
 	var next_pit_num = calc_next_pit(pit_num)
 	var tween = create_tween()
@@ -41,6 +41,7 @@ func _on_pit_pressed(pit_num : int):
 		if player_changes(rock, last_rock, next_pit_num):
 			tween.tween_callback(func(): player1_turn = not player1_turn)
 		next_pit_num = calc_next_pit(next_pit_num)
+		_enable_disable_pit_buttons()
 
 func player_changes(rock, last_rock, next_pit_num):
 	var changes = rock == last_rock and next_pit_num != 6 and next_pit_num != 13
@@ -70,3 +71,10 @@ func _enable_disable_pit_buttons():
 			pit.disabled = (pit.get_child_count() == 0) or i > 6
 		else:
 			pit.disabled = (pit.get_child_count() == 0) or i < 6
+
+func _on_pit_changed(pit_num : int):
+	pass
+	#if is_inside_tree():
+		#var node = %Pits.get_child(pit_num)
+		#var node_label = %PitLabels.get_child(pit_num)
+		#node_label.text = node.get_child_count()
